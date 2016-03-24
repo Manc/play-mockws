@@ -263,6 +263,21 @@ class MockWSTest extends FunSuite with Matchers with PropertyChecks {
     }
   }
 
+  test("mock WS supports authentication with Basic Auth") {
+    val ws = MockWS {
+      case (_, _) => Action { request =>
+        request.headers.get("Authorization") match {
+          case Some(v) if v == s"Basic: Zm9vOlBhcyR3b3JE" => Ok // "Zm9vOlBhcyR3b3JE" == base64("foo:Pas$worD")
+          case _ => Unauthorized(request.headers.toSimpleMap.toString)
+        }
+      }
+    }
+
+    val wsResponse = await(ws.url("/").withAuth("foo", "myPas$worD", WSAuthScheme.BASIC).get)
+    wsResponse.status shouldEqual OK
+    ws.close()
+  }
+
   test("mock WS supports varargs passed as immutable Seqs") {
     forAll { (q: String, v: String) =>
       whenever(q.nonEmpty) {

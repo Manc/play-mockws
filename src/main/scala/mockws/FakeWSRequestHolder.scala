@@ -25,6 +25,7 @@ case class FakeWSRequestHolder(
   body: WSBody = EmptyBody,
   headers: Map[String, Seq[String]] = Map.empty,
   queryString: Map[String, Seq[String]] = Map.empty,
+  auth: Option[(String, String, WSAuthScheme)] = None,
   requestTimeout: Option[Int] = None,
   timeoutProvider: TimeoutProvider = SchedulerExecutorServiceTimeoutProvider)(
   implicit val materializer: ActorMaterializer
@@ -33,13 +34,13 @@ case class FakeWSRequestHolder(
   private val logger = LoggerFactory.getLogger(getClass)
 
   /* Not implemented. */
-  override val auth: Option[(String, String, WSAuthScheme)] = None
   override val calc: Option[WSSignatureCalculator] = None
   override val followRedirects: Option[Boolean] = None
   override val proxyServer: Option[WSProxyServer] = None
   override val virtualHost: Option[String] = None
 
-  def withAuth(username: String, password: String, scheme: WSAuthScheme) = this
+  def withAuth(username: String, password: String, scheme: WSAuthScheme) =
+    copy(auth = Some((username, password, scheme)))
 
   def sign(calc: WSSignatureCalculator): WSRequest = this
 
